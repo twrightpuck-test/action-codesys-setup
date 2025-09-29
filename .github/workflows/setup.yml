@@ -22,7 +22,7 @@ jobs:
       uses: ./
       with:
         installer-only: true
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: true
 
     - name: Test installer outputs
@@ -64,7 +64,7 @@ jobs:
       id: setup_codesys
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: false
         generation: ${{ matrix.generation }}
         architecture: ${{ matrix.architecture }}
@@ -100,7 +100,7 @@ jobs:
       id: setup_codesys
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
         patch: 2
@@ -133,7 +133,7 @@ jobs:
       id: setup_codesys
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
         patch: 2
@@ -165,7 +165,7 @@ jobs:
       id: setup_codesys
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
         patch: 2
@@ -201,7 +201,7 @@ jobs:
       id: setup_codesys
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
         patch: 2
@@ -231,7 +231,7 @@ jobs:
       id: codesys_3_5_20_0_x64
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: false
         generation: 3.5.20.0
         architecture: 64
@@ -241,7 +241,7 @@ jobs:
       id: codesys_3_5_21_2_x64
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: false
         generation: 3.5.21.0
         architecture: 64
@@ -251,7 +251,7 @@ jobs:
       id: codesys_3_5_19_6_x86
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: false
         generation: 3.5.19.0
         architecture: 32
@@ -288,7 +288,7 @@ jobs:
       id: setup_custom
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         generation: 3.5.21.0
         patch: 0
         architecture: 64
@@ -329,7 +329,7 @@ jobs:
       uses: ./
       with:
         installer-only: true
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: true
 
     - name: Verify installer is available
@@ -347,7 +347,7 @@ jobs:
       id: install_codesys
       uses: ./
       with:
-        installer-version: 2.4.1
+        installer-version: 2.5.0
         auto-update-installer: false
         generation: 3.5.21.0
         patch: 2
@@ -386,7 +386,7 @@ jobs:
             generation: "3.5.21.0"
             patch: "2"
             architecture: "64"
-            installer-version: "2.4.1"
+            installer-version: "2.5.0"
             auto-update: true
 
     steps:
@@ -397,7 +397,7 @@ jobs:
       id: test_setup
       uses: ./
       with:
-        installer-version: ${{ matrix.test.installer-version || '2.4.1' }}
+        installer-version: ${{ matrix.test.installer-version || '2.5.0' }}
         auto-update-installer: ${{ matrix.test.auto-update || 'false' }}
         generation: ${{ matrix.test.generation }}
         patch: ${{ matrix.test.patch }}
