@@ -52,6 +52,8 @@ jobs:
             patch: 3
           - generation: 3.5.21.0
             patch: 2
+          - generation: 3.5.21.0
+            patch: 3
 
     runs-on: windows-latest
     permissions:
@@ -103,7 +105,7 @@ jobs:
         installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
-        patch: 2
+        patch: 3
         architecture: 64
         install-add-ons: true
         add-ons-list: |
@@ -136,7 +138,7 @@ jobs:
         installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
-        patch: 2
+        patch: 3
         architecture: 64
         install-add-ons: true
         add-ons-from-file-list: |
@@ -168,7 +170,7 @@ jobs:
         installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
-        patch: 2
+        patch: 3
         architecture: 64
         install-add-ons: true
         add-ons-list: |
@@ -204,7 +206,7 @@ jobs:
         installer-version: 2.5.0
         auto-update-installer: true
         generation: 3.5.21.0
-        patch: 2
+        patch: 3
         architecture: 64
         install-add-ons: true
         add-ons-installer-import-file: example/custom_import_files/example_import_add-ons.installation-config

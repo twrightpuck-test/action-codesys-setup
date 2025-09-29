@@ -24,7 +24,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
       auto-update-installer: false
       generation: 3.5.21.0
       architecture: 64
-      patch: 2
+      patch: 3
 ```
 
 ## Usage examples
