@@ -12,6 +12,11 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
 > [!IMPORTANT]  
 > This action is only supported to run on windows OS.
 
+> [!WARNING]
+> From CODESYS Installer Version >= `2.5.0.0` CODESYS changed the Version format to `<Major>.<Minor>.<Patch>.<Fix|Build>`.
+> Versions < `2.5.0.0` used the Version format `<Major>.<Minor>.<Patch>`.
+> To use a specific version, check the CODESYS Installer versions from the [version history](https://store.codesys.com/en/codesys-installer.html#product.attributes.wrapper).
+
 ## Usage
 
 >:white_flag: See the [inputs](#inputs) section for detailed descriptions.
@@ -20,7 +25,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
   - name: Setup CODESYS
     uses: powerIO-GmbH/action-codesys-setup@v1
     with:
-      installer-version: 2.5.0
+      installer-version: 2.5.0.0
       auto-update-installer: false
       generation: 3.5.21.0
       architecture: 64
@@ -35,7 +40,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
     uses: powerIO-GmbH/action-codesys-setup@v1
     with:
       installer-only: true
-      installer-version: 2.5.0
+      installer-version: 2.5.0.0
       auto-update-installer: true
 ```
 
@@ -60,7 +65,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
       id: setup_codesys
       uses: powerIO-GmbH/action-codesys-setup@v1
       with:
-        installer-version: 2.5.0
+        installer-version: 2.5.0.0
         auto-update-installer: true
         generation: 3.5.20.0
         architecture: 64
@@ -79,7 +84,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
 | Input | Description | Required | Default |
 |-------|-------------|----------|----------|
 | `installer-only` | If set to `true`, only the installer will be installed without a CODESYS installation. | false | `false` |
-| `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.5.0` |
+| `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.5.0.0` |
 | `generation` | This is the base generation you want to install (e.g., `3.5.21.0`). Even if you want to install version `3.5.21.2`, you have to define the generation as `3.5.21.0`. The patch version is defined by the `patch` input. | false | `3.5.21.0` |
 | `architecture` | The installation architecture of CODESYS. Allowed inputs: `32` and `64`. | false | `64` |
 | `patch` | The patch of the CODESYS version to install. | false | `0` |
