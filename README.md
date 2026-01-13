@@ -25,11 +25,11 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
   - name: Setup CODESYS
     uses: powerIO-GmbH/action-codesys-setup@v1
     with:
-      installer-version: 2.5.0.0
+      installer-version: 2.6.0.0
       auto-update-installer: false
       generation: 3.5.21.0
       architecture: 64
-      patch: 3
+      patch: 4
 ```
 
 ## Usage examples
@@ -84,7 +84,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
 | Input | Description | Required | Default |
 |-------|-------------|----------|----------|
 | `installer-only` | If set to `true`, only the installer will be installed without a CODESYS installation. | false | `false` |
-| `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.5.0.0` |
+| `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.6.0.0` |
 | `generation` | This is the base generation you want to install (e.g., `3.5.21.0`). Even if you want to install version `3.5.21.2`, you have to define the generation as `3.5.21.0`. The patch version is defined by the `patch` input. | false | `3.5.21.0` |
 | `architecture` | The installation architecture of CODESYS. Allowed inputs: `32` and `64`. | false | `64` |
 | `patch` | The patch of the CODESYS version to install. | false | `0` |
