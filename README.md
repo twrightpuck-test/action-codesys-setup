@@ -40,7 +40,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
     uses: powerIO-GmbH/action-codesys-setup@v1
     with:
       installer-only: true
-      installer-version: 2.5.0.0
+      installer-version: 2.6.0.0
       auto-update-installer: true
 ```
 
@@ -65,7 +65,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
       id: setup_codesys
       uses: powerIO-GmbH/action-codesys-setup@v1
       with:
-        installer-version: 2.5.0.0
+        installer-version: 2.6.0.0
         auto-update-installer: true
         generation: 3.5.20.0
         architecture: 64
