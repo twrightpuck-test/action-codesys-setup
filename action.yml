@@ -14,8 +14,13 @@ inputs:
 
   use-cache:
     description: >
-       'Enable caching of CODESYS installation using GitHub Actions cache. 
+       'Enable caching of CODESYS installation using GitHub Actions cache.
        When enabled, installations are stored as sandboxes and restored on subsequent runs.''
+    required: false
+    default: false
+
+  cache-installer:
+    description: "Enable caching of the CODESYS installer. Skips download on subsequent runs."
     required: false
     default: false
 
@@ -207,9 +212,33 @@ runs:
 
         Write-Host "::endgroup::"
 
-    - name: Download installer
+    - name: Generate installer cache key
+      id: installer_cache_key
+      if: ${{ inputs.cache-installer == 'true' }}
       shell: pwsh
-      run: | # powershell
+      run: |
+        $version = "${{ inputs.installer-version }}"
+        $cacheKey = "codesys-installer-$version"
+        $cachePath = Join-Path $env:RUNNER_TEMP "installer-cache"
+
+        Write-Host "Installer cache key: $cacheKey"
+        Write-Host "Installer cache path: $cachePath"
+
+        "cache-key=$cacheKey" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "cache-path=$cachePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Restore installer cache
+      id: restore_installer_cache
+      if: ${{ inputs.cache-installer == 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.installer_cache_key.outputs.cache-path }}
+        key: ${{ steps.installer_cache_key.outputs.cache-key }}
+
+    - name: Download installer
+      if: ${{ inputs.cache-installer != 'true' || steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      shell: pwsh
+      run: |
         Write-Host "::group::Download CODESYS installer"
 
         $base_url = "${{ steps.globals.outputs.BASE_URL_INSTALLER }}"
@@ -222,6 +251,32 @@ runs:
         Invoke-WebRequest -Uri $installer_url -OutFile $output_file
 
         Write-Host "::endgroup::"
+
+    - name: Copy installer to cache
+      if: ${{ inputs.cache-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      shell: pwsh
+      run: |
+        $cachePath = "${{ steps.installer_cache_key.outputs.cache-path }}"
+        if (-not (Test-Path $cachePath)) {
+            New-Item -ItemType Directory -Path $cachePath -Force | Out-Null
+        }
+        Copy-Item -Path "installer.exe" -Destination "$cachePath\installer.exe" -Force
+        Write-Host "Installer copied to cache: $cachePath"
+
+    - name: Save installer cache
+      if: ${{ inputs.cache-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.installer_cache_key.outputs.cache-path }}
+        key: ${{ steps.installer_cache_key.outputs.cache-key }}
+
+    - name: Restore installer from cache
+      if: ${{ inputs.cache-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit == 'true' }}
+      shell: pwsh
+      run: |
+        $cachePath = "${{ steps.installer_cache_key.outputs.cache-path }}"
+        Copy-Item -Path "$cachePath\installer.exe" -Destination "installer.exe" -Force
+        Write-Host "Installer restored from cache"
 
     - name: Install CODESYS installer
       shell: pwsh

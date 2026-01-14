@@ -437,6 +437,7 @@ jobs:
         architecture: 64
         patch: 0
         use-cache: true
+        cache-installer: true
 
     - name: Verify cache output exists
       shell: pwsh
