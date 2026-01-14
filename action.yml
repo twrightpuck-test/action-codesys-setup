@@ -524,7 +524,8 @@ runs:
 
             $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Verb runas -Wait -PassThru
             if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
-                exit 0
+                Write-Host "AddOn installation completed (exit code: $($process.ExitCode))"
+                continue
             } elseif ($process.ExitCode -ne 0) {
                 throw "AddOn installation failed with exit code $($process.ExitCode)."
             }
@@ -559,7 +560,8 @@ runs:
 
             $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Verb runas -Wait -PassThru
             if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
-                exit 0
+                Write-Host "Package installation completed (exit code: $($process.ExitCode))"
+                continue
             } elseif ($process.ExitCode -ne 0) {
                 throw "AddOn installation failed with exit code $($process.ExitCode)."
             }
