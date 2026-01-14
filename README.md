@@ -79,11 +79,23 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
           example/custom_import_files/example_import_add-ons.installation-config
 ```
 
+- Install CODESYS with caching enabled for faster subsequent runs:
+```yml
+  - name: Setup CODESYS with Cache
+    uses: powerIO-GmbH/action-codesys-setup@v1
+    with:
+      generation: 3.5.21.0
+      architecture: 64
+      patch: 0
+      use-cache: true
+```
+
 ## Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|----------|
 | `installer-only` | If set to `true`, only the installer will be installed without a CODESYS installation. | false | `false` |
+| `use-cache` | Enable caching of CODESYS installation using GitHub Actions cache. When enabled, installations are stored as sandboxes and restored on subsequent runs. | false | `false` |
 | `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.6.0.0` |
 | `generation` | This is the base generation you want to install (e.g., `3.5.21.0`). Even if you want to install version `3.5.21.2`, you have to define the generation as `3.5.21.0`. The patch version is defined by the `patch` input. | false | `3.5.21.0` |
 | `architecture` | The installation architecture of CODESYS. Allowed inputs: `32` and `64`. | false | `64` |
@@ -107,3 +119,4 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
 | `installer-cli-executable`    | The path of the CODESYS installer CLI executable. |
 | `installation-info-file-path` | The path of the installation information file. (Not available when `installer-only` is true) |
 | `add-ons-info-file-path`      | The path of the add-ons information file. (Not available when `installer-only` is true) |
+| `cache-hit`                   | Whether the CODESYS installation was restored from cache. |

@@ -12,6 +12,13 @@ inputs:
     required: false
     default: false
 
+  use-cache:
+    description: >
+       'Enable caching of CODESYS installation using GitHub Actions cache. 
+       When enabled, installations are stored as sandboxes and restored on subsequent runs.''
+    required: false
+    default: false
+
   installer-version:
     description: "The version of the installer to use to install the CODESYS installation."
     required: false
@@ -102,10 +109,10 @@ inputs:
 
 outputs:
   codesys-path:
-    value: ${{ steps.parameter_validation.outputs.installation-path }}
+    value: ${{ steps.cached_paths.outputs.installation-path || steps.parameter_validation.outputs.installation-path }}
     description: "The path of the installed CODESYS version."
   codesys-executable:
-    value: ${{ steps.parameter_validation.outputs.installation-path }}\CODESYS\Common\CODESYS.exe
+    value: ${{ steps.cached_paths.outputs.installation-path || steps.parameter_validation.outputs.installation-path }}\CODESYS\Common\CODESYS.exe
     description: "The path of the CODESYS executable."
   installer-path:
     value: ${{ steps.globals.outputs.INSTALLER_DIR }}
@@ -119,6 +126,9 @@ outputs:
   add-ons-info-file-path:
     value: ${{ steps.install_info.outputs.add-ons-info-file-path }}
     description: "The path of the add-ons information file."
+  cache-hit:
+    value: ${{ steps.restore_cache.outputs.cache-hit }}
+    description: "Whether the CODESYS installation was restored from cache."
 
 runs:
   using: composite
@@ -139,6 +149,90 @@ runs:
         "BASE_URL_INSTALLER=https://store-archive.codesys.com/ftp_download/3S/Installer/000127" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         "INSTALLER_VERSION=${{ inputs.installer-version }}" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         "INSTALLER_DIR=C:\Program Files (x86)\CODESYS\APInstaller" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+        Write-Host "::endgroup::"
+
+    - name: Generate cache key
+      id: cache_key
+      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' }}
+      shell: pwsh
+      run: |
+        $generation = "${{ inputs.generation }}"
+        $architecture = "${{ inputs.architecture }}"
+        $patch = "${{ inputs.patch }}"
+        $hotfix = "${{ inputs.hotfix }}"
+        $build = "${{ inputs.build }}"
+
+        $cacheKey = "codesys-sandbox-$generation-$architecture-$patch-$hotfix-$build"
+        $cachePath = Join-Path $env:RUNNER_TEMP "codesys-cache"
+
+        Write-Host "Cache key: $cacheKey"
+        Write-Host "Cache path: $cachePath"
+
+        "cache-key=$cacheKey" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "cache-path=$cachePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Restore CODESYS cache
+      id: restore_cache
+      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.cache_key.outputs.cache-path }}
+        key: ${{ steps.cache_key.outputs.cache-key }}
+
+    - name: Register cached sandbox
+      id: register_sandbox
+      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
+      shell: pwsh
+      run: |
+        Write-Host "::group::Register cached CODESYS sandbox"
+
+        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+
+        Write-Host "Registering sandbox from: $cachePath"
+
+        $arguments = "--addSandbox --targetDirectory `"$cachePath`""
+
+        $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Wait -NoNewWindow -PassThru
+
+        if ($process.ExitCode -eq 0 -or $process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+            Write-Host "Sandbox registered successfully"
+        } else {
+            throw "Sandbox registration failed with exit code $($process.ExitCode)"
+        }
+
+        Write-Host "::endgroup::"
+
+    - name: Resolve cached installation paths
+      id: cached_paths
+      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
+      shell: pwsh
+      run: |
+        Write-Host "::group::Resolve cached installation paths"
+
+        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
+
+        $generation = "${{ inputs.generation }}"
+        $patch = "${{ inputs.patch }}"
+        $architecture = "${{ inputs.architecture }}"
+
+        $version_parts = $generation -split '\.'
+        $version_parts[$version_parts.Length - 1] = $patch
+        $new_generation = $version_parts -join '.'
+        $installation_name = "CODESYS $new_generation"
+
+        if ($architecture -eq "64") {
+            $installation_path = "C:\Program Files\$installation_name"
+        } else {
+            $installation_path = "C:\Program Files (x86)\$installation_name"
+        }
+
+        Write-Host "Installation path: $installation_path"
+        Write-Host "Installation name: $installation_name"
+
+        "installation-path=$installation_path" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "installation-name=$installation_name" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
         Write-Host "::endgroup::"
 
@@ -187,7 +281,7 @@ runs:
 
         Write-Host "::endgroup::"
 
-    - if: ${{ inputs.installer-only != 'true' }}
+    - if: ${{ inputs.installer-only != 'true' && (inputs.use-cache != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
       name: Prepare and validate inputs
       id: parameter_validation
       shell: pwsh
@@ -238,7 +332,7 @@ runs:
 
         Write-Host "::endgroup::"
 
-    - if: ${{ inputs.installer-only != 'true' }}
+    - if: ${{ inputs.installer-only != 'true' && (inputs.use-cache != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
       name: Install CODESYS
       shell: pwsh
       run: | # powershell
@@ -285,15 +379,50 @@ runs:
         Write-Host "Finished installation"
         Write-Host "::endgroup::"
 
+    - name: Create sandbox for caching
+      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
+      shell: pwsh
+      run: |
+        Write-Host "::group::Create CODESYS sandbox for caching"
+
+        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
+        $installationPath = "${{ steps.parameter_validation.outputs.installation-path }}"
+
+        if (-not (Test-Path $cachePath)) {
+            New-Item -ItemType Directory -Path $cachePath -Force | Out-Null
+        }
+
+        Write-Host "Creating sandbox from installation at: $installationPath"
+        Write-Host "Sandbox destination: $cachePath"
+
+        Copy-Item -Path "$installationPath\*" -Destination $cachePath -Recurse -Force
+
+        Write-Host "Sandbox created successfully"
+        Write-Host "::endgroup::"
+
+    - name: Save CODESYS cache
+      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.cache_key.outputs.cache-path }}
+        key: ${{ steps.cache_key.outputs.cache-key }}
+
     - if: ${{ inputs.installer-only != 'true' }}
       name: Decide add-ons path
       id: add_ons_path
       shell: pwsh
-      run: | # powershell
+      run: |
         Write-Host "::group::Show installation path"
 
-        $base_path = "${{ steps.parameter_validation.outputs.installation-path }}"
-        $installation_name = "${{ steps.parameter_validation.outputs.installation-name }}"
+        # Use cached paths if available, otherwise use parameter_validation paths
+        if ("${{ steps.restore_cache.outputs.cache-hit }}" -eq "true") {
+            $base_path = "${{ steps.cached_paths.outputs.installation-path }}"
+            $installation_name = "${{ steps.cached_paths.outputs.installation-name }}"
+        } else {
+            $base_path = "${{ steps.parameter_validation.outputs.installation-path }}"
+            $installation_name = "${{ steps.parameter_validation.outputs.installation-name }}"
+        }
+
         $dir_add_ons = ''
 
         if (Test-Path $base_path) {
