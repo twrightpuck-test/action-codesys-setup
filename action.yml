@@ -180,30 +180,6 @@ runs:
         path: ${{ steps.cache_key.outputs.cache-path }}
         key: ${{ steps.cache_key.outputs.cache-key }}
 
-    - name: Register cached sandbox
-      id: register_sandbox
-      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
-      shell: pwsh
-      run: | # powershell
-        Write-Host "::group::Register cached CODESYS sandbox"
-
-        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
-        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
-
-        Write-Host "Registering sandbox from: $cachePath"
-
-        $arguments = "--addSandbox --targetDirectory `"$cachePath`""
-
-        $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Wait -NoNewWindow -PassThru
-
-        if ($process.ExitCode -eq 0 -or $process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
-            Write-Host "Sandbox registered successfully"
-        } else {
-            throw "Sandbox registration failed with exit code $($process.ExitCode)"
-        }
-
-        Write-Host "::endgroup::"
-
     - name: Resolve cached installation paths
       id: cached_paths
       if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
@@ -277,6 +253,30 @@ runs:
             exit 0
         } elseif ($process.ExitCode -ne 0) {
             throw "Update failed with exit code $($process.ExitCode)."
+        }
+
+        Write-Host "::endgroup::"
+
+    - name: Register cached sandbox
+      id: register_sandbox
+      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
+      shell: pwsh
+      run: |
+        Write-Host "::group::Register cached CODESYS sandbox"
+
+        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+
+        Write-Host "Registering sandbox from: $cachePath"
+
+        $arguments = "--addSandbox --targetDirectory `"$cachePath`""
+
+        $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Wait -NoNewWindow -PassThru
+
+        if ($process.ExitCode -eq 0 -or $process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+            Write-Host "Sandbox registered successfully"
+        } else {
+            throw "Sandbox registration failed with exit code $($process.ExitCode)"
         }
 
         Write-Host "::endgroup::"
