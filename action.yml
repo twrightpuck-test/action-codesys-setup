@@ -155,8 +155,8 @@ runs:
     - name: Generate cache key
       id: cache_key
       if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' }}
-      shell: pwsh
-      run: |
+      shell: pwsh 
+      run: | # powershell
         $generation = "${{ inputs.generation }}"
         $architecture = "${{ inputs.architecture }}"
         $patch = "${{ inputs.patch }}"
@@ -184,7 +184,7 @@ runs:
       id: register_sandbox
       if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
       shell: pwsh
-      run: |
+      run: | # powershell
         Write-Host "::group::Register cached CODESYS sandbox"
 
         $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
@@ -208,7 +208,7 @@ runs:
       id: cached_paths
       if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
       shell: pwsh
-      run: |
+      run: | # powershell
         Write-Host "::group::Resolve cached installation paths"
 
         $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
@@ -382,7 +382,7 @@ runs:
     - name: Create sandbox for caching
       if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
       shell: pwsh
-      run: |
+      run: | # powershell
         Write-Host "::group::Create CODESYS sandbox for caching"
 
         $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
@@ -411,7 +411,7 @@ runs:
       name: Decide add-ons path
       id: add_ons_path
       shell: pwsh
-      run: |
+      run: | # powershell
         Write-Host "::group::Show installation path"
 
         # Use cached paths if available, otherwise use parameter_validation paths
