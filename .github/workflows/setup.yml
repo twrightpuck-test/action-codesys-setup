@@ -89,7 +89,23 @@ jobs:
         path: |
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
-    
+
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          exit 1
+        }
+
   # Test: Install with add-ons from ID list
   addons-from-list:
     runs-on: windows-latest
@@ -123,6 +139,22 @@ jobs:
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
 
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          exit 1
+        }
+
   # Test: Install with add-ons from package files
   addons-from-packages:
     runs-on: windows-latest
@@ -154,6 +186,22 @@ jobs:
         path: |
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
+
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          exit 1
+        }
 
   # Test: Install with mixed add-on sources
   addons-mixed-sources:
@@ -191,6 +239,22 @@ jobs:
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
 
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          exit 1
+        }
+
   # Test: Install with installer import config
   addons-from-import-config:
     runs-on: windows-latest
@@ -220,6 +284,22 @@ jobs:
         path: |
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
+
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          exit 1
+        }
 
   # Test: Multiple CODESYS versions in same job
   multiple-installations:
@@ -278,6 +358,28 @@ jobs:
           }
         }
 
+    - name: Run CODESYS headless verification for all installations
+      shell: pwsh
+      run: |
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+        $installations = @(
+          @{ Exe = "${{ steps.codesys_3_5_20_0_x64.outputs.codesys-executable }}"; Version = "3.5.20.0" },
+          @{ Exe = "${{ steps.codesys_3_5_21_2_x64.outputs.codesys-executable }}"; Version = "3.5.21.2" },
+          @{ Exe = "${{ steps.codesys_3_5_19_6_x86.outputs.codesys-executable }}"; Version = "3.5.19.6" }
+        )
+
+        foreach ($install in $installations) {
+          Write-Host "Running CODESYS $($install.Version) headless verification..."
+          $process = Start-Process -FilePath $install.Exe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+          if ($process.ExitCode -eq 0) {
+            Write-Host "CODESYS $($install.Version) headless verification passed!"
+          } else {
+            Write-Host "CODESYS $($install.Version) headless verification failed with exit code: $($process.ExitCode)"
+            exit 1
+          }
+        }
+
   # Test: Custom installation directory
   custom-directory:
     runs-on: windows-latest
@@ -315,6 +417,22 @@ jobs:
           Write-Host "CODESYS executable found in custom directory"
         } else {
           Write-Host "CODESYS executable not found in custom directory"
+          exit 1
+        }
+
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.setup_custom.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -364,6 +482,22 @@ jobs:
           Write-Host "CODESYS installed successfully at: $codesysExe"
         } else {
           Write-Host "CODESYS installation failed"
+          exit 1
+        }
+
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.install_codesys.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -420,6 +554,22 @@ jobs:
           exit 1
         }
 
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.test_setup.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification for ${{ matrix.test.name }}..."
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          exit 1
+        }
+
   # Test: Caching functionality
   test-cache:
     runs-on: windows-latest
@@ -465,5 +615,24 @@ jobs:
           Write-Host "CODESYS installed successfully with caching enabled"
         } else {
           Write-Host "CODESYS executable not found"
+          exit 1
+        }
+
+    - name: Run CODESYS headless verification
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ steps.setup_cached.outputs.codesys-executable }}"
+        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+
+        Write-Host "Running CODESYS headless verification..."
+        Write-Host "Executable: $codesysExe"
+        Write-Host "Script: $scriptPath"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS headless verification passed!"
+        } else {
+          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
           exit 1
         }
