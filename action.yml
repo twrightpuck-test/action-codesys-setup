@@ -184,27 +184,22 @@ runs:
       id: cached_paths
       if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
       shell: pwsh
-      run: | # powershell
+      run: |
         Write-Host "::group::Resolve cached installation paths"
 
         $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
 
         $generation = "${{ inputs.generation }}"
         $patch = "${{ inputs.patch }}"
-        $architecture = "${{ inputs.architecture }}"
 
         $version_parts = $generation -split '\.'
         $version_parts[$version_parts.Length - 1] = $patch
         $new_generation = $version_parts -join '.'
         $installation_name = "CODESYS $new_generation"
 
-        if ($architecture -eq "64") {
-            $installation_path = "C:\Program Files\$installation_name"
-        } else {
-            $installation_path = "C:\Program Files (x86)\$installation_name"
-        }
+        $installation_path = $cachePath
 
-        Write-Host "Installation path: $installation_path"
+        Write-Host "Installation path (cache): $installation_path"
         Write-Host "Installation name: $installation_name"
 
         "installation-path=$installation_path" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
