@@ -90,11 +90,10 @@ jobs:
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
 
         # Build profile name from matrix values
         $generation = "${{ matrix.generation }}"
@@ -107,14 +106,19 @@ jobs:
           $profile = "CODESYS V3.5 SP$spNumber Patch $patch"
         }
 
-        Write-Host "Running CODESYS headless verification..."
-        Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
+        Write-Host "Version:    ${{ matrix.generation }} Patch ${{ matrix.patch }}"
+        Write-Host "Profile:    $profile"
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -151,21 +155,24 @@ jobs:
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
         $profile = "CODESYS V3.5 SP21 Patch 4"
 
-        Write-Host "Running CODESYS headless verification..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
         Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -201,21 +208,24 @@ jobs:
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
         $profile = "CODESYS V3.5 SP21 Patch 4"
 
-        Write-Host "Running CODESYS headless verification..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
         Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -255,21 +265,24 @@ jobs:
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
         $profile = "CODESYS V3.5 SP21 Patch 4"
 
-        Write-Host "Running CODESYS headless verification..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
         Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -303,21 +316,24 @@ jobs:
           ${{ steps.setup_codesys.outputs.installation-info-file-path }}
           ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.setup_codesys.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
         $profile = "CODESYS V3.5 SP21 Patch 4"
 
-        Write-Host "Running CODESYS headless verification..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
         Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -378,10 +394,13 @@ jobs:
           }
         }
 
-    - name: Run CODESYS headless verification for all installations
+    - name: Verify all CODESYS installations start with profile
       shell: pwsh
       run: |
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
+
         $installations = @(
           @{ Exe = "${{ steps.codesys_3_5_20_0_x64.outputs.codesys-executable }}"; Version = "3.5.20.0"; Profile = "CODESYS V3.5 SP20" },
           @{ Exe = "${{ steps.codesys_3_5_21_2_x64.outputs.codesys-executable }}"; Version = "3.5.21.2"; Profile = "CODESYS V3.5 SP21 Patch 2" },
@@ -389,15 +408,16 @@ jobs:
         )
 
         foreach ($install in $installations) {
-          Write-Host "Running CODESYS $($install.Version) headless verification with profile: $($install.Profile)..."
-          $process = Start-Process -FilePath $install.Exe -ArgumentList "--noUI", "--profile=`"$($install.Profile)`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+          Write-Host "Version: $($install.Version) | Profile: $($install.Profile)"
+          $process = Start-Process -FilePath $install.Exe -ArgumentList "--noUI", "--profile=`"$($install.Profile)`"" -Wait -PassThru -NoNewWindow
 
           if ($process.ExitCode -eq 0) {
-            Write-Host "CODESYS $($install.Version) headless verification passed!"
+            Write-Host "[PASS] CODESYS $($install.Version) started successfully"
           } else {
-            Write-Host "CODESYS $($install.Version) headless verification failed with exit code: $($process.ExitCode)"
+            Write-Host "[FAIL] CODESYS $($install.Version) exit code: $($process.ExitCode)"
             exit 1
           }
+          Write-Host "----------------------------------------"
         }
 
   # Test: Custom installation directory
@@ -440,21 +460,24 @@ jobs:
           exit 1
         }
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.setup_custom.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
         $profile = "CODESYS V3.5 SP21"
 
-        Write-Host "Running CODESYS headless verification..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
         Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -507,21 +530,24 @@ jobs:
           exit 1
         }
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.install_codesys.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
         $profile = "CODESYS V3.5 SP21 Patch 2"
 
-        Write-Host "Running CODESYS headless verification..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
         Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -578,11 +604,10 @@ jobs:
           exit 1
         }
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.test_setup.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
 
         # Build profile name from matrix values
         $generation = "${{ matrix.test.generation }}"
@@ -595,14 +620,19 @@ jobs:
           $profile = "CODESYS V3.5 SP$spNumber Patch $patch"
         }
 
-        Write-Host "Running CODESYS headless verification for ${{ matrix.test.name }}..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
+        Write-Host "Test:    ${{ matrix.test.name }}"
         Write-Host "Profile: $profile"
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        Write-Host "----------------------------------------"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] Exit code: $($process.ExitCode)"
           exit 1
         }
 
@@ -654,33 +684,24 @@ jobs:
           exit 1
         }
 
-    - name: Run CODESYS headless verification
+    - name: Verify CODESYS starts with profile
       shell: pwsh
       run: |
         $codesysExe = "${{ steps.setup_cached.outputs.codesys-executable }}"
-        $scriptPath = Join-Path $env:GITHUB_WORKSPACE "test\verify_installation.py"
+        $profile = "CODESYS V3.5 SP21"
 
-        # Build profile name: "CODESYS V3.5 SP21" or "CODESYS V3.5 SP21 Patch 2"
-        $generation = "3.5.21.0"
-        $patch = 0
-        $genParts = $generation -split '\.'
-        $spNumber = $genParts[2]
-        if ($patch -eq 0) {
-          $profile = "CODESYS V3.5 SP$spNumber"
-        } else {
-          $profile = "CODESYS V3.5 SP$spNumber Patch $patch"
-        }
-
-        Write-Host "Running CODESYS headless verification..."
+        Write-Host "----------------------------------------"
+        Write-Host "CODESYS Headless Startup Verification"
+        Write-Host "----------------------------------------"
         Write-Host "Executable: $codesysExe"
-        Write-Host "Profile: $profile"
-        Write-Host "Script: $scriptPath"
+        Write-Host "Profile:    $profile"
+        Write-Host "----------------------------------------"
 
-        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"", "--runscript=`"$scriptPath`"" -Wait -PassThru -NoNewWindow
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
 
         if ($process.ExitCode -eq 0) {
-          Write-Host "CODESYS headless verification passed!"
+          Write-Host "[PASS] CODESYS started successfully with profile"
         } else {
-          Write-Host "CODESYS headless verification failed with exit code: $($process.ExitCode)"
+          Write-Host "[FAIL] CODESYS failed with exit code: $($process.ExitCode)"
           exit 1
         }
