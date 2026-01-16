@@ -1,0 +1,58 @@
+name: Test Caching
+
+on:
+  workflow_call:
+
+jobs:
+  test-cache:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup CODESYS with cache enabled
+        id: setup_cached
+        uses: ./
+        with:
+          generation: 3.5.21.0
+          architecture: 64
+          patch: 0
+          cache-codesys-installation: true
+          cache-codesys-installer: true
+
+      - name: Verify cache output exists
+        shell: pwsh
+        run: |
+          $cacheHit = "${{ steps.setup_cached.outputs.cache-hit }}"
+          Write-Host "Cache hit: $cacheHit"
+
+          if ($cacheHit -eq "true") {
+            Write-Host "Cache was hit (expected on subsequent runs)"
+          } else {
+            Write-Host "Cache miss (expected on first run)"
+          }
+
+      - name: Verify installation outputs
+        shell: pwsh
+        run: |
+          $codesysPath = "${{ steps.setup_cached.outputs.codesys-path }}"
+          $codesysExe = "${{ steps.setup_cached.outputs.codesys-executable }}"
+
+          Write-Host "CODESYS path: $codesysPath"
+          Write-Host "CODESYS executable: $codesysExe"
+
+          if (Test-Path $codesysExe) {
+            Write-Host "CODESYS installed successfully with caching enabled"
+          } else {
+            Write-Host "CODESYS executable not found"
+            exit 1
+          }
+
+      - name: Verify CODESYS starts
+        uses: ./.github/actions/verify-codesys
+        with:
+          codesys-executable: ${{ steps.setup_cached.outputs.codesys-executable }}
+          generation: 3.5.21.0
+          patch: 0

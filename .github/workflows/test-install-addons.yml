@@ -1,0 +1,164 @@
+name: Test Addon Installation
+
+on:
+  workflow_call:
+
+jobs:
+  addons-from-list:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup CODESYS
+        id: setup_codesys
+        uses: ./
+        with:
+          installer-version: 2.6.0.0
+          auto-update-installer: true
+          generation: 3.5.21.0
+          patch: 4
+          architecture: 64
+          install-add-ons: true
+          add-ons-list: |
+            dd6c2da4-2ed2-4076-9bf7-52394db68819,1.6.0.0
+            fb6f3506-d165-4e75-a1b9-98895d542cc8,4.5.0.0
+            bd131967-3a89-4e22-a845-79b0be0a3ce1,4.1.0.0
+
+      - name: Upload info files
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          retention-days: 5
+          name: addons-list-info-files
+          path: |
+            ${{ steps.setup_codesys.outputs.installation-info-file-path }}
+            ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
+
+      - name: Verify CODESYS starts
+        uses: ./.github/actions/verify-codesys
+        with:
+          codesys-executable: ${{ steps.setup_codesys.outputs.codesys-executable }}
+          generation: 3.5.21.0
+          patch: 4
+
+  addons-from-packages:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup CODESYS
+        id: setup_codesys
+        uses: ./
+        with:
+          installer-version: 2.6.0.0
+          auto-update-installer: true
+          generation: 3.5.21.0
+          patch: 4
+          architecture: 64
+          install-add-ons: true
+          add-ons-from-file-list: |
+            example/custom_packages/NetBaseServices_Example_1.0.0.0.package
+            example/custom_packages/Trace_Example_1.0.0.0.package
+
+      - name: Upload info files
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          retention-days: 5
+          name: addons-packages-info-files
+          path: |
+            ${{ steps.setup_codesys.outputs.installation-info-file-path }}
+            ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
+
+      - name: Verify CODESYS starts
+        uses: ./.github/actions/verify-codesys
+        with:
+          codesys-executable: ${{ steps.setup_codesys.outputs.codesys-executable }}
+          generation: 3.5.21.0
+          patch: 4
+
+  addons-mixed-sources:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup CODESYS
+        id: setup_codesys
+        uses: ./
+        with:
+          installer-version: 2.6.0.0
+          auto-update-installer: true
+          generation: 3.5.21.0
+          patch: 4
+          architecture: 64
+          install-add-ons: true
+          add-ons-list: |
+            dd6c2da4-2ed2-4076-9bf7-52394db68819,1.6.0.0
+            fb6f3506-d165-4e75-a1b9-98895d542cc8,4.5.0.0
+            bd131967-3a89-4e22-a845-79b0be0a3ce1,4.1.0.0
+          add-ons-from-file-list: |
+            example/custom_packages/NetBaseServices_Example_1.0.0.0.package
+            example/custom_packages/Trace_Example_1.0.0.0.package
+
+      - name: Upload info files
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          retention-days: 5
+          name: addons-mixed-info-files
+          path: |
+            ${{ steps.setup_codesys.outputs.installation-info-file-path }}
+            ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
+
+      - name: Verify CODESYS starts
+        uses: ./.github/actions/verify-codesys
+        with:
+          codesys-executable: ${{ steps.setup_codesys.outputs.codesys-executable }}
+          generation: 3.5.21.0
+          patch: 4
+
+  addons-from-import-config:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup CODESYS
+        id: setup_codesys
+        uses: ./
+        with:
+          installer-version: 2.6.0.0
+          auto-update-installer: true
+          generation: 3.5.21.0
+          patch: 4
+          architecture: 64
+          install-add-ons: true
+          add-ons-installer-import-file: example/custom_import_files/example_import_add-ons.installation-config
+
+      - name: Upload info files
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          retention-days: 5
+          name: addons-import-info-files
+          path: |
+            ${{ steps.setup_codesys.outputs.installation-info-file-path }}
+            ${{ steps.setup_codesys.outputs.add-ons-info-file-path }}
+
+      - name: Verify CODESYS starts
+        uses: ./.github/actions/verify-codesys
+        with:
+          codesys-executable: ${{ steps.setup_codesys.outputs.codesys-executable }}
+          generation: 3.5.21.0
+          patch: 4

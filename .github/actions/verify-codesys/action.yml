@@ -1,0 +1,42 @@
+name: "Verify CODESYS Startup"
+description: "Verify CODESYS starts successfully with the correct profile"
+
+inputs:
+  codesys-executable:
+    description: "Path to CODESYS executable"
+    required: true
+  generation:
+    description: "CODESYS generation (e.g., 3.5.21.0)"
+    required: true
+  patch:
+    description: "CODESYS patch version"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Verify CODESYS starts with profile
+      shell: pwsh
+      run: |
+        $codesysExe = "${{ inputs.codesys-executable }}"
+        $generation = "${{ inputs.generation }}"
+        $patch = ${{ inputs.patch }}
+
+        $genParts = $generation -split '\.'
+        $spNumber = $genParts[2]
+        if ($patch -eq 0) {
+          $profile = "CODESYS V3.5 SP$spNumber"
+        } else {
+          $profile = "CODESYS V3.5 SP$spNumber Patch $patch"
+        }
+
+        Write-Host "Verifying CODESYS startup with profile: $profile"
+
+        $process = Start-Process -FilePath $codesysExe -ArgumentList "--noUI", "--profile=`"$profile`"" -Wait -PassThru -NoNewWindow
+
+        if ($process.ExitCode -eq 0) {
+          Write-Host "CODESYS started successfully"
+        } else {
+          Write-Host "CODESYS failed with exit code: $($process.ExitCode)"
+          exit 1
+        }

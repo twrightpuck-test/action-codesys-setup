@@ -12,14 +12,12 @@ inputs:
     required: false
     default: false
 
-  use-cache:
-    description: >
-       'Enable caching of CODESYS installation using GitHub Actions cache.
-       When enabled, installations are stored as sandboxes and restored on subsequent runs.''
+  cache-codesys-installation:
+    description: "Enable caching of CODESYS installation. Installations are stored as sandboxes and restored on subsequent runs."
     required: false
     default: false
 
-  cache-installer:
+  cache-codesys-installer:
     description: "Enable caching of the CODESYS installer. Skips download on subsequent runs."
     required: false
     default: false
@@ -159,7 +157,7 @@ runs:
 
     - name: Generate cache key
       id: cache_key
-      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' }}
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' }}
       shell: pwsh 
       run: | # powershell
         $generation = "${{ inputs.generation }}"
@@ -168,7 +166,7 @@ runs:
         $hotfix = "${{ inputs.hotfix }}"
         $build = "${{ inputs.build }}"
 
-        $cacheKey = "codesys-sandbox-$generation-$architecture-$patch-$hotfix-$build"
+        $cacheKey = "v1-codesys-sandbox-$generation-$architecture-$patch-$hotfix-$build"
         $cachePath = Join-Path $env:RUNNER_TEMP "codesys-cache"
 
         Write-Host "Cache key: $cacheKey"
@@ -179,7 +177,7 @@ runs:
 
     - name: Restore CODESYS cache
       id: restore_cache
-      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' }}
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{ steps.cache_key.outputs.cache-path }}
@@ -187,7 +185,7 @@ runs:
 
     - name: Resolve cached installation paths
       id: cached_paths
-      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
       shell: pwsh
       run: |
         Write-Host "::group::Resolve cached installation paths"
@@ -214,11 +212,11 @@ runs:
 
     - name: Generate installer cache key
       id: installer_cache_key
-      if: ${{ inputs.cache-installer == 'true' }}
+      if: ${{ inputs.cache-codesys-installer == 'true' }}
       shell: pwsh
       run: |
         $version = "${{ inputs.installer-version }}"
-        $cacheKey = "codesys-installer-$version"
+        $cacheKey = "v1-codesys-installer-$version"
         $cachePath = Join-Path $env:RUNNER_TEMP "installer-cache"
 
         Write-Host "Installer cache key: $cacheKey"
@@ -229,14 +227,14 @@ runs:
 
     - name: Restore installer cache
       id: restore_installer_cache
-      if: ${{ inputs.cache-installer == 'true' }}
+      if: ${{ inputs.cache-codesys-installer == 'true' }}
       uses: actions/cache/restore@v4
       with:
         path: ${{ steps.installer_cache_key.outputs.cache-path }}
         key: ${{ steps.installer_cache_key.outputs.cache-key }}
 
     - name: Download installer
-      if: ${{ inputs.cache-installer != 'true' || steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.cache-codesys-installer != 'true' || steps.restore_installer_cache.outputs.cache-hit != 'true' }}
       shell: pwsh
       run: |
         Write-Host "::group::Download CODESYS installer"
@@ -253,7 +251,7 @@ runs:
         Write-Host "::endgroup::"
 
     - name: Copy installer to cache
-      if: ${{ inputs.cache-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.cache-codesys-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
       shell: pwsh
       run: |
         $cachePath = "${{ steps.installer_cache_key.outputs.cache-path }}"
@@ -264,14 +262,14 @@ runs:
         Write-Host "Installer copied to cache: $cachePath"
 
     - name: Save installer cache
-      if: ${{ inputs.cache-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.cache-codesys-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.installer_cache_key.outputs.cache-path }}
         key: ${{ steps.installer_cache_key.outputs.cache-key }}
 
     - name: Restore installer from cache
-      if: ${{ inputs.cache-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit == 'true' }}
+      if: ${{ inputs.cache-codesys-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit == 'true' }}
       shell: pwsh
       run: |
         $cachePath = "${{ steps.installer_cache_key.outputs.cache-path }}"
@@ -309,7 +307,7 @@ runs:
 
     - name: Register cached sandbox
       id: register_sandbox
-      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
       shell: pwsh
       run: |
         Write-Host "::group::Register cached CODESYS sandbox"
@@ -331,7 +329,7 @@ runs:
 
         Write-Host "::endgroup::"
 
-    - if: ${{ inputs.installer-only != 'true' && (inputs.use-cache != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
+    - if: ${{ inputs.installer-only != 'true' && (inputs.cache-codesys-installation != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
       name: Prepare and validate inputs
       id: parameter_validation
       shell: pwsh
@@ -382,7 +380,7 @@ runs:
 
         Write-Host "::endgroup::"
 
-    - if: ${{ inputs.installer-only != 'true' && (inputs.use-cache != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
+    - if: ${{ inputs.installer-only != 'true' && (inputs.cache-codesys-installation != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
       name: Install CODESYS
       shell: pwsh
       run: | # powershell
@@ -430,7 +428,7 @@ runs:
         Write-Host "::endgroup::"
 
     - name: Create sandbox for caching
-      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
       shell: pwsh
       run: | # powershell
         Write-Host "::group::Create CODESYS sandbox for caching"
@@ -451,7 +449,7 @@ runs:
         Write-Host "::endgroup::"
 
     - name: Save CODESYS cache
-      if: ${{ inputs.use-cache == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ${{ steps.cache_key.outputs.cache-path }}

@@ -3,6 +3,7 @@
 > This github action is used to install CODESYS for CI/CD jobs.
 
 [![CODESYS Installation Setup](https://github.com/powerIO-GmbH/action-codesys-setup/actions/workflows/setup.yml/badge.svg?branch=main)](https://github.com/powerIO-GmbH/action-codesys-setup/actions/workflows/setup.yml)
+[![Version Matrix](https://github.com/powerIO-GmbH/action-codesys-setup/actions/workflows/test-install-versions.yml/badge.svg?branch=main)](https://github.com/powerIO-GmbH/action-codesys-setup/actions/workflows/test-install-versions.yml)
 
 ## About
 
@@ -79,7 +80,16 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
           example/custom_import_files/example_import_add-ons.installation-config
 ```
 
-- Install CODESYS with caching enabled for faster subsequent runs:
+## Cache
+
+> [!TIP]
+> Use caching to speed up subsequent workflow runs. The installer and CODESYS installation can be cached independently.
+
+| Option | What it caches |
+|--------|----------------|
+| `cache-codesys-installer` | The installer executable |
+| `cache-codesys-installation` | Stores the CODESYS installation as a sandbox, restores and registers it on subsequent runs |
+
 ```yml
   - name: Setup CODESYS with Cache
     uses: powerIO-GmbH/action-codesys-setup@v1
@@ -87,8 +97,8 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
       generation: 3.5.21.0
       architecture: 64
       patch: 0
-      use-cache: true
-      cache-installer: true
+      cache-codesys-installation: true
+      cache-codesys-installer: true
 ```
 
 ## Inputs
@@ -96,8 +106,8 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
 | Input | Description | Required | Default |
 |-------|-------------|----------|----------|
 | `installer-only` | If set to `true`, only the installer will be installed without a CODESYS installation. | false | `false` |
-| `use-cache` | Enable caching of CODESYS installation using GitHub Actions cache. When enabled, installations are stored as sandboxes and restored on subsequent runs. | false | `false` |
-| `cache-installer` | Enable caching of the CODESYS installer. Skips download on subsequent runs. | false | `false` |
+| `cache-codesys-installation` | Enable caching of CODESYS installation. Installations are stored as sandboxes and restored on subsequent runs. | false | `false` |
+| `cache-codesys-installer` | Enable caching of the CODESYS installer. Skips download on subsequent runs. | false | `false` |
 | `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.6.0.0` |
 | `generation` | This is the base generation you want to install (e.g., `3.5.21.0`). Even if you want to install version `3.5.21.2`, you have to define the generation as `3.5.21.0`. The patch version is defined by the `patch` input. | false | `3.5.21.0` |
 | `architecture` | The installation architecture of CODESYS. Allowed inputs: `32` and `64`. | false | `64` |

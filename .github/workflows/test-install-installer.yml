@@ -1,0 +1,27 @@
+name: Test Installer Only
+
+on:
+  workflow_call:
+
+jobs:
+  installer-only:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup CODESYS Installer Only
+        id: setup_installer
+        uses: ./
+        with:
+          installer-only: true
+          installer-version: 2.6.0.0
+          auto-update-installer: true
+
+      - name: Test installer outputs
+        shell: bash
+        run: |
+          echo "Installer path: ${{ steps.setup_installer.outputs.installer-path }}"
+          echo "Installer CLI executable: ${{ steps.setup_installer.outputs.installer-cli-executable }}"
