@@ -10,15 +10,15 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup CODESYS with cache enabled
         id: setup_cached
         uses: ./
         with:
-          generation: 3.5.21.0
+          generation: 3.5.22.0
           architecture: 64
-          patch: 0
+          patch: 1
           cache-codesys-installation: true
           cache-codesys-installer: true
 
@@ -54,5 +54,5 @@ jobs:
         uses: ./.github/actions/verify-codesys
         with:
           codesys-executable: ${{ steps.setup_cached.outputs.codesys-executable }}
-          generation: 3.5.21.0
-          patch: 0
+          generation: 3.5.22.0
+          patch: 1
