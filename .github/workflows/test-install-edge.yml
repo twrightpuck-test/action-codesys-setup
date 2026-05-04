@@ -10,13 +10,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install CODESYS 3.5.20.0 (64-bit)
         id: codesys_3_5_20_0_x64
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: false
           generation: 3.5.20.0
           architecture: 64
@@ -26,7 +26,7 @@ jobs:
         id: codesys_3_5_21_2_x64
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: false
           generation: 3.5.21.0
           architecture: 64
@@ -36,7 +36,7 @@ jobs:
         id: codesys_3_5_19_6_x86
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: false
           generation: 3.5.19.0
           architecture: 32
@@ -86,13 +86,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup CODESYS with custom directory
         id: setup_custom
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           generation: 3.5.21.0
           patch: 0
           architecture: 64
@@ -132,14 +132,14 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: First install installer only
         id: installer_only
         uses: ./
         with:
           installer-only: true
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: true
 
       - name: Verify installer is available
@@ -157,7 +157,7 @@ jobs:
         id: install_codesys
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: false
           generation: 3.5.21.0
           patch: 2
@@ -202,18 +202,18 @@ jobs:
             generation: "3.5.21.0"
             patch: "2"
             architecture: "64"
-            installer-version: "2.6.0.0"
+            installer-version: "2.6.1.0"
             auto-update: true
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Test ${{ matrix.test.name }}
         id: test_setup
         uses: ./
         with:
-          installer-version: ${{ matrix.test.installer-version || '2.6.0.0' }}
+          installer-version: ${{ matrix.test.installer-version || '2.6.1.0' }}
           auto-update-installer: ${{ matrix.test.auto-update || 'false' }}
           generation: ${{ matrix.test.generation }}
           patch: ${{ matrix.test.patch }}

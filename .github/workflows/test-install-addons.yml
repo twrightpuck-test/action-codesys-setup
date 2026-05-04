@@ -10,13 +10,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup CODESYS
         id: setup_codesys
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: true
           generation: 3.5.21.0
           patch: 4
@@ -28,7 +28,7 @@ jobs:
             bd131967-3a89-4e22-a845-79b0be0a3ce1,4.1.0.0
 
       - name: Upload info files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           retention-days: 5
@@ -50,13 +50,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup CODESYS
         id: setup_codesys
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: true
           generation: 3.5.21.0
           patch: 4
@@ -67,7 +67,7 @@ jobs:
             example/custom_packages/Trace_Example_1.0.0.0.package
 
       - name: Upload info files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           retention-days: 5
@@ -89,13 +89,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup CODESYS
         id: setup_codesys
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: true
           generation: 3.5.21.0
           patch: 4
@@ -110,7 +110,7 @@ jobs:
             example/custom_packages/Trace_Example_1.0.0.0.package
 
       - name: Upload info files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           retention-days: 5
@@ -132,13 +132,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup CODESYS
         id: setup_codesys
         uses: ./
         with:
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: true
           generation: 3.5.21.0
           patch: 4
@@ -147,7 +147,7 @@ jobs:
           add-ons-installer-import-file: example/custom_import_files/example_import_add-ons.installation-config
 
       - name: Upload info files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           retention-days: 5

@@ -17,7 +17,7 @@ jobs:
         uses: ./
         with:
           installer-only: true
-          installer-version: 2.6.0.0
+          installer-version: 2.6.1.0
           auto-update-installer: true
 
       - name: Test installer outputs

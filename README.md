@@ -26,11 +26,11 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
   - name: Setup CODESYS
     uses: powerIO-GmbH/action-codesys-setup@v1
     with:
-      installer-version: 2.6.0.0
+      installer-version: 2.6.1.0
       auto-update-installer: false
-      generation: 3.5.21.0
+      generation: 3.5.22.0
       architecture: 64
-      patch: 4
+      patch: 1
 ```
 
 ## Usage examples
@@ -41,7 +41,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
     uses: powerIO-GmbH/action-codesys-setup@v1
     with:
       installer-only: true
-      installer-version: 2.6.0.0
+      installer-version: 2.6.1.0
       auto-update-installer: true
 ```
 
@@ -66,7 +66,7 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
       id: setup_codesys
       uses: powerIO-GmbH/action-codesys-setup@v1
       with:
-        installer-version: 2.6.0.0
+        installer-version: 2.6.1.0
         auto-update-installer: true
         generation: 3.5.20.0
         architecture: 64
@@ -108,10 +108,10 @@ It can also be used to process test cases or other CI/CD jobs in your workflow.
 | `installer-only` | If set to `true`, only the installer will be installed without a CODESYS installation. | false | `false` |
 | `cache-codesys-installation` | Enable caching of CODESYS installation. Installations are stored as sandboxes and restored on subsequent runs. | false | `false` |
 | `cache-codesys-installer` | Enable caching of the CODESYS installer. Skips download on subsequent runs. | false | `false` |
-| `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.6.0.0` |
-| `generation` | This is the base generation you want to install (e.g., `3.5.21.0`). Even if you want to install version `3.5.21.2`, you have to define the generation as `3.5.21.0`. The patch version is defined by the `patch` input. | false | `3.5.21.0` |
+| `installer-version` | The version of the installer to use to install the CODESYS installation. | false | `2.6.1.0` |
+| `generation` | This is the base generation you want to install (e.g., `3.5.22.0`). Even if you want to install version `3.5.22.1`, you have to define the generation as `3.5.21.0`. The patch version is defined by the `patch` input. | false | `3.5.22.0` |
 | `architecture` | The installation architecture of CODESYS. Allowed inputs: `32` and `64`. | false | `64` |
-| `patch` | The patch of the CODESYS version to install. | false | `0` |
+| `patch` | The patch of the CODESYS version to install. | false | `1` |
 | `hotfix` | The hotfix of the CODESYS version to install. | false | `0` |
 | `build` | The build of the CODESYS version to install. | false | `0` |
 | `installation-directory` | Custom installation directory. If empty, the path is set based on architecture and installation version. Examples:<br>- 64-bit, generation 3.5.19.0, patch 6: `C:\Program Files\CODESYS 3.5.19.6`<br>- 32-bit, generation 3.5.17.0, patch 2: `C:\Program Files (x86)\CODESYS 3.5.17.2` | false | `''` |
