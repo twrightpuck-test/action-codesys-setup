@@ -10,7 +10,7 @@ inputs:
   installer-only:
     description: "If set to `true`, only the installer will be installed without a CODESYS installation."
     required: false
-    default: true
+    default: false
 
   cache-codesys-installation:
     description: "Enable caching of CODESYS installation. Installations are stored as sandboxes and restored on subsequent runs."
