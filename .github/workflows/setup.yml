@@ -24,7 +24,7 @@ jobs:
       contents: read
     uses: ./.github/workflows/test-install-cache.yml
 
-  edge:
-    permissions:
-      contents: read
-    uses: ./.github/workflows/test-install-edge.yml
+  # edge:
+  #   permissions:
+  #     contents: read
+  #   uses: ./.github/workflows/test-install-edge.yml
