@@ -1,0 +1,650 @@
+name: "Setup CODESYS Installation"
+author: powerIO GmbH
+description: "Setup CODESYS Installation for headless CI/CD Jobs"
+
+branding:
+  icon: "package"
+  color: "red"
+
+inputs:
+  installer-only:
+    description: "If set to `true`, only the installer will be installed without a CODESYS installation."
+    required: false
+    default: false
+
+  cache-codesys-installation:
+    description: "Enable caching of CODESYS installation. Installations are stored as sandboxes and restored on subsequent runs."
+    required: false
+    default: true
+
+  cache-codesys-installer:
+    description: "Enable caching of the CODESYS installer. Skips download on subsequent runs."
+    required: false
+    default: true
+
+  installer-version:
+    description: "The version of the installer to use to install the CODESYS installation."
+    required: false
+    default: 2.6.1.0
+
+  generation:
+    description: >
+      'This is the base generation you want to install. For example `3.5.19.0`.
+      Even if you want to install the version `3.5.19.6` you have to define the generation as `3.5.19.0`.  
+      The patch version is defined by the `patch` input.'
+    required: false
+    default: 3.5.20.0
+
+  architecture:
+    description: "The installation architecture of CODESYS. Allowed inputs: `32` and `64`."
+    required: false
+    default: 64
+
+  patch:
+    description: "The patch of the CODESYS version to install."
+    required: false
+    default: 1
+
+  hotfix:
+    description: "The hotfix of the CODESYS version to install."
+    required: false
+    default: 0
+
+  build:
+    description: "The build of the CODESYS version to install."
+    required: false
+    default: 0
+
+  installation-directory:
+    description: >
+      'This can be used to define a custom installation directory.  
+       If this input is empty, the installation path is set based on the architecture and installation version.  
+
+        For example - bit `64`, generation `3.5.20.0` and patch `3`:  
+        `C:\Program Files\CODESYS 3.5.20.3`
+
+        For example - bit `32`, generation `3.5.17.0` and patch `2`:  
+        `C:\Program Files (x86)\CODESYS 3.5.17.2`'
+    required: false
+    default: ""
+
+  auto-update-installer:
+    description: "If set to `true`, the installer will be updated before the installation."
+    required: false
+    default: true
+
+  install-add-ons:
+    description: "If set to `true`, the installer will install the CODESYS AddOns."
+    required: false
+    default: true
+
+  add-ons-list:
+    description: >
+      'A list of addons to install.
+      Given by the id and the version of the addon.
+
+      For example - Install Git `dd6c2da4-2ed2-4076-9bf7-52394db68819,1.4.0.0`
+
+      If you want to install multiple addons, create a new line for each addon.
+        For example - Install Git and Library dev package
+        ```
+        dd6c2da4-2ed2-4076-9bf7-52394db68819,1.4.0.0
+        fb6f3506-d165-4e75-a1b9-98895d542cc8,4.5.0.0
+        ```
+      '
+    required: false
+    default: ''
+  
+  add-ons-from-file-list:
+    description: >
+      'A list of addons to install.
+      Given by the path to the <name-of-package>.package file' 
+    required: false
+    default: '' 
+
+  add-ons-installer-import-file:
+    description: >
+      'Path to the exported installer add-ons file
+      This file can be created by exporting the installed add-ons from an existing installation.
+      The file usually has the extension `.installation-config`'
+    required: false
+    default: ''
+
+outputs:
+  codesys-path:
+    value: ${{ steps.cached_paths.outputs.installation-path || steps.parameter_validation.outputs.installation-path }}
+    description: "The path of the installed CODESYS version."
+  codesys-executable:
+    value: ${{ steps.cached_paths.outputs.installation-path || steps.parameter_validation.outputs.installation-path }}\CODESYS\Common\CODESYS.exe
+    description: "The path of the CODESYS executable."
+  installer-path:
+    value: ${{ steps.globals.outputs.INSTALLER_DIR }}
+    description: "The path of the installed CODESYS installer."
+  installer-cli-executable:
+    value: ${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe
+    description: "The path of the CODESYS installer CLI executable."
+  installation-info-file-path:
+    value: ${{ steps.install_info.outputs.installation-info-file-path }}
+    description: "The path of the installation information file."
+  add-ons-info-file-path:
+    value: ${{ steps.install_info.outputs.add-ons-info-file-path }}
+    description: "The path of the add-ons information file."
+  cache-hit:
+    value: ${{ steps.restore_cache.outputs.cache-hit }}
+    description: "Whether the CODESYS installation was restored from cache."
+
+runs:
+  using: composite
+  steps:
+    - name: Check runner OS
+      if: runner.os != 'Windows'
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::error::This action is only supported on Windows runners."
+        exit 1
+
+    - name: Set globals
+      id: globals
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Set Global variables for installation"
+
+        "BASE_URL_INSTALLER=https://store-archive.codesys.com/ftp_download/3S/Installer/000127" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "INSTALLER_VERSION=${{ inputs.installer-version }}" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "INSTALLER_DIR=C:\Program Files (x86)\CODESYS\APInstaller" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+        Write-Host "::endgroup::"
+
+    - name: Generate cache key
+      id: cache_key
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' }}
+      shell: pwsh 
+      run: | # powershell
+        $generation = "${{ inputs.generation }}"
+        $architecture = "${{ inputs.architecture }}"
+        $patch = "${{ inputs.patch }}"
+        $hotfix = "${{ inputs.hotfix }}"
+        $build = "${{ inputs.build }}"
+
+        $cacheKey = "v1-codesys-sandbox-$generation-$architecture-$patch-$hotfix-$build"
+        $cachePath = Join-Path $env:RUNNER_TEMP "codesys-cache"
+
+        Write-Host "Cache key: $cacheKey"
+        Write-Host "Cache path: $cachePath"
+
+        "cache-key=$cacheKey" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "cache-path=$cachePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Restore CODESYS cache
+      id: restore_cache
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.cache_key.outputs.cache-path }}
+        key: ${{ steps.cache_key.outputs.cache-key }}
+
+    - name: Resolve cached installation paths
+      id: cached_paths
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
+      shell: pwsh
+      run: |
+        Write-Host "::group::Resolve cached installation paths"
+
+        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
+
+        $generation = "${{ inputs.generation }}"
+        $patch = "${{ inputs.patch }}"
+
+        $version_parts = $generation -split '\.'
+        $version_parts[$version_parts.Length - 1] = $patch
+        $new_generation = $version_parts -join '.'
+        $installation_name = "CODESYS $new_generation"
+
+        $installation_path = $cachePath
+
+        Write-Host "Installation path (cache): $installation_path"
+        Write-Host "Installation name: $installation_name"
+
+        "installation-path=$installation_path" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "installation-name=$installation_name" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+        Write-Host "::endgroup::"
+
+    - name: Generate installer cache key
+      id: installer_cache_key
+      if: ${{ inputs.cache-codesys-installer == 'true' }}
+      shell: pwsh
+      run: |
+        $version = "${{ inputs.installer-version }}"
+        $cacheKey = "v1-codesys-installer-$version"
+        $cachePath = Join-Path $env:RUNNER_TEMP "installer-cache"
+
+        Write-Host "Installer cache key: $cacheKey"
+        Write-Host "Installer cache path: $cachePath"
+
+        "cache-key=$cacheKey" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "cache-path=$cachePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Restore installer cache
+      id: restore_installer_cache
+      if: ${{ inputs.cache-codesys-installer == 'true' }}
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.installer_cache_key.outputs.cache-path }}
+        key: ${{ steps.installer_cache_key.outputs.cache-key }}
+
+    - name: Download installer
+      if: ${{ inputs.cache-codesys-installer != 'true' || steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      shell: pwsh
+      run: |
+        Write-Host "::group::Download CODESYS installer"
+
+        $base_url = "${{ steps.globals.outputs.BASE_URL_INSTALLER }}"
+        $version = "${{ steps.globals.outputs.INSTALLER_VERSION }}"
+        $installer_url = "$base_url/$version/CODESYS%20Installer%20$version.exe"
+        $output_file = "installer.exe"
+
+        Write-Host "Downloading installer from $installer_url"
+
+        Invoke-WebRequest -Uri $installer_url -OutFile $output_file
+
+        Write-Host "::endgroup::"
+
+    - name: Copy installer to cache
+      if: ${{ inputs.cache-codesys-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      shell: pwsh
+      run: |
+        $cachePath = "${{ steps.installer_cache_key.outputs.cache-path }}"
+        if (-not (Test-Path $cachePath)) {
+            New-Item -ItemType Directory -Path $cachePath -Force | Out-Null
+        }
+        Copy-Item -Path "installer.exe" -Destination "$cachePath\installer.exe" -Force
+        Write-Host "Installer copied to cache: $cachePath"
+
+    - name: Save installer cache
+      if: ${{ inputs.cache-codesys-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.installer_cache_key.outputs.cache-path }}
+        key: ${{ steps.installer_cache_key.outputs.cache-key }}
+
+    - name: Restore installer from cache
+      if: ${{ inputs.cache-codesys-installer == 'true' && steps.restore_installer_cache.outputs.cache-hit == 'true' }}
+      shell: pwsh
+      run: |
+        $cachePath = "${{ steps.installer_cache_key.outputs.cache-path }}"
+        Copy-Item -Path "$cachePath\installer.exe" -Destination "installer.exe" -Force
+        Write-Host "Installer restored from cache"
+
+    - name: Install CODESYS installer
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Install CODESYS installer"
+
+        Write-Host "This process will take a few seconds. Please be patient."
+
+        Start-Process -FilePath "installer.exe" -ArgumentList "/S /v/qb" -Wait
+        Remove-Item -Path "installer.exe"
+
+        Write-Host "::endgroup::"
+
+    - if: ${{ inputs.auto-update-installer == 'true' }}
+      name: Update Installer
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Update CODESYS installer"
+
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+        $process = Start-Process -FilePath $exePath -ArgumentList "--selfUpdate" -Wait -NoNewWindow -PassThru
+
+        if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+            exit 0
+        } elseif ($process.ExitCode -ne 0) {
+            throw "Update failed with exit code $($process.ExitCode)."
+        }
+
+        Write-Host "::endgroup::"
+
+    - name: Register cached sandbox
+      id: register_sandbox
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit == 'true' }}
+      shell: pwsh
+      run: |
+        Write-Host "::group::Register cached CODESYS sandbox"
+
+        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+
+        Write-Host "Registering sandbox from: $cachePath"
+
+        $arguments = "--addSandbox --targetDirectory `"$cachePath`""
+
+        $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Wait -NoNewWindow -PassThru
+
+        if ($process.ExitCode -eq 0 -or $process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+            Write-Host "Sandbox registered successfully"
+        } else {
+            throw "Sandbox registration failed with exit code $($process.ExitCode)"
+        }
+
+        Write-Host "::endgroup::"
+
+    - if: ${{ inputs.installer-only != 'true' && (inputs.cache-codesys-installation != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
+      name: Prepare and validate inputs
+      id: parameter_validation
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Validate inputs"
+
+        $generation = "${{ inputs.generation }}"
+        $architecture = "${{ inputs.architecture }}"
+        $patch = "${{ inputs.patch }}"
+        $hotfix = "${{ inputs.hotfix }}"
+        $build = "${{ inputs.build }}"
+        $installationDirectory = "${{ inputs.installation-directory }}"
+
+        if ($generation -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+            Write-Host "Generation format is invalid. Must be X.X.X.X where X is a number."
+            exit 1
+        }
+        if ($architecture -ne "64" -and $architecture -ne "32") {
+            Write-Host "Architecture must be 64 or 32."
+            exit 1
+        }
+        if ($patch -notmatch '^\d+$' -or $hotfix -notmatch '^\d+$' -or $build -notmatch '^\d+$') {
+            Write-Host "Patch, Hotfix, and Build must be numeric."
+            exit 1
+        }
+
+        # Split the generation into parts
+        $version_parts = $generation -split '\.'
+        $length = $version_parts.Length
+        $last_index = $length - 1
+        $version_parts[$last_index] = $patch
+        $new_generation = $version_parts -join '.'
+
+        $installation_name = "CODESYS $new_generation"
+
+        if ([string]::IsNullOrWhiteSpace($installationDirectory)) {
+            if ($architecture -eq "64") {
+                $installation_path = "C:\Program Files\$installation_name"
+            } else {
+                $installation_path = "C:\Program Files (x86)\$installation_name"
+            }
+        } else {
+            $installation_path = $installationDirectory
+        }
+        Write-Host "Installation path set to: $installation_path"
+        "installation-path=$installation_path" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        "installation-name=$installation_name" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+        Write-Host "::endgroup::"
+
+    - if: ${{ inputs.installer-only != 'true' && (inputs.cache-codesys-installation != 'true' || steps.restore_cache.outputs.cache-hit != 'true') }}
+      name: Install CODESYS
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Install CODESYS"
+        Write-Host "This process will take a few minutes. Please be patient."
+    
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+        $arguments = "--createInstallation " +
+            "--product CODESYS " +
+            "--generation `"${{ inputs.generation }}`" " +
+            "--bit `"${{ inputs.architecture }}`" " +
+            "--patch `"${{ inputs.patch }}`" " +
+            "--hotfix `"${{ inputs.hotfix }}`" " +
+            "--build `"${{ inputs.build }}`" " +
+            "--installationName `"${{ steps.parameter_validation.outputs.installation-name }}`" " +
+            "--destinationFolder `"${{ steps.parameter_validation.outputs.installation-path }}`""
+
+        Write-Host "Executing: $exePath $arguments"
+
+        $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+        $startInfo.FileName = $exePath
+        $startInfo.Arguments = $arguments
+        $startInfo.UseShellExecute = $true  # Required for elevation
+        $startInfo.Verb = "runas"           # Request elevation
+
+        try {
+            $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Verb runas -Wait -PassThru
+            $exitCode = $process.ExitCode
+            
+            Write-Host "Process completed with exit code: $exitCode"
+            
+            if ($exitCode -eq 1 -or $exitCode -eq -1) {
+                Write-Host "Installation completed with expected exit code"
+                exit 0
+            } elseif ($exitCode -ne 0) {
+                throw "Installation failed with exit code $exitCode"
+            }
+        }
+        catch {
+            Write-Host "Error during installation: $_"
+            exit 1
+        }
+
+        Write-Host "Finished installation"
+        Write-Host "::endgroup::"
+
+    - name: Create sandbox for caching
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Create CODESYS sandbox for caching"
+
+        $cachePath = "${{ steps.cache_key.outputs.cache-path }}"
+        $installationPath = "${{ steps.parameter_validation.outputs.installation-path }}"
+
+        if (-not (Test-Path $cachePath)) {
+            New-Item -ItemType Directory -Path $cachePath -Force | Out-Null
+        }
+
+        Write-Host "Creating sandbox from installation at: $installationPath"
+        Write-Host "Sandbox destination: $cachePath"
+
+        Copy-Item -Path "$installationPath\*" -Destination $cachePath -Recurse -Force
+
+        Write-Host "Sandbox created successfully"
+        Write-Host "::endgroup::"
+
+    - name: Save CODESYS cache
+      if: ${{ inputs.cache-codesys-installation == 'true' && inputs.installer-only != 'true' && steps.restore_cache.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ steps.cache_key.outputs.cache-path }}
+        key: ${{ steps.cache_key.outputs.cache-key }}
+
+    - if: ${{ inputs.installer-only != 'true' }}
+      name: Decide add-ons path
+      id: add_ons_path
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Show installation path"
+
+        # Use cached paths if available, otherwise use parameter_validation paths
+        if ("${{ steps.restore_cache.outputs.cache-hit }}" -eq "true") {
+            $base_path = "${{ steps.cached_paths.outputs.installation-path }}"
+            $installation_name = "${{ steps.cached_paths.outputs.installation-name }}"
+        } else {
+            $base_path = "${{ steps.parameter_validation.outputs.installation-path }}"
+            $installation_name = "${{ steps.parameter_validation.outputs.installation-name }}"
+        }
+
+        $dir_add_ons = ''
+
+        if (Test-Path $base_path) {
+            $path1 = Join-Path $base_path "CODESYS\AdditionalFolders\$installation_name"
+            $path2 = Join-Path $base_path "CODESYS"
+            if (Test-Path $path1) {
+                $dir_add_ons = $path1
+            } elseif (Test-Path $path2) {
+                $dir_add_ons = $path2
+            } else {
+                Write-Host "Installation path does not exist"
+                exit 1
+            }
+        } else {
+            Write-Host "Installation path does not exist"
+            exit 1
+        }
+
+        Write-Host "Add-Ons directory: $dir_add_ons"
+        "directory=$dir_add_ons" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+        Write-Host "::endgroup::"
+
+    - if: (inputs.installer-only != 'true' && inputs.install-add-ons == 'true' && inputs.add-ons-list != '')
+      name: Install Add-ons from text entry list
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Install AddOns"
+
+        $addonsToInstall = @()
+        $rawList = "${{ inputs.add-ons-list }}" -split "\r?\n"
+        foreach ($line in $rawList) {
+            if (-not [string]::IsNullOrWhiteSpace($line)) {
+                $addonsToInstall += $line.Trim()
+            }
+        }
+
+        foreach ($addon in $addonsToInstall) {
+            $details = $addon -split ","
+            $id = $details[0].Trim()
+            $version = $details[1].Trim()
+            Write-Host "Installing addon with ID: $id and Version: $version"
+
+            $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+            $arguments = "--installAddOn " +
+            "--location `"${{ steps.add_ons_path.outputs.directory }}`" " +
+            "--id `"${id}`" " +
+            "--version `"${version}`""
+
+            $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Verb runas -Wait -PassThru
+            if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+                Write-Host "AddOn installation completed (exit code: $($process.ExitCode))"
+                continue
+            } elseif ($process.ExitCode -ne 0) {
+                throw "AddOn installation failed with exit code $($process.ExitCode)."
+            }
+        }
+        Write-Host "Finished installing addons"
+
+        Write-Host "::endgroup::"
+
+    - if: (inputs.installer-only != 'true' && inputs.install-add-ons == 'true' && inputs.add-ons-from-file-list != '')
+      name: Install Add-ons from file list
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Install AddOns"
+
+        $packagesToInstall = @()
+        $rawList = "${{ inputs.add-ons-from-file-list }}" -split "\r?\n"
+        foreach ($line in $rawList) {
+            if (-not [string]::IsNullOrWhiteSpace($line)) {
+                # Properly handle paths with Join-Path
+                $packagePath = Join-Path $env:GITHUB_WORKSPACE $line.Trim()
+                $packagesToInstall += $packagePath
+            }
+        }
+
+        foreach ($packagePath in $packagesToInstall) {
+            Write-Host "Installing package from path: $packagePath"
+
+            $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+            $arguments = "--installAddOnFromFile " +
+            "--location `"${{ steps.add_ons_path.outputs.directory }}`" " +
+            "--sourcefile `"${packagePath}`""
+
+            $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Verb runas -Wait -PassThru
+            if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+                Write-Host "Package installation completed (exit code: $($process.ExitCode))"
+                continue
+            } elseif ($process.ExitCode -ne 0) {
+                throw "AddOn installation failed with exit code $($process.ExitCode)."
+            }
+        }
+        Write-Host "Finished installing addons"
+
+        Write-Host "::endgroup::"
+
+    - if: (inputs.installer-only != 'true' && inputs.install-add-ons == 'true' && inputs.add-ons-installer-import-file != '')
+      name: Install Add-ons from installer import file (.installation-config)
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Install AddOns from installer import file"
+        $importFilePath = Join-Path $env:GITHUB_WORKSPACE "${{ inputs.add-ons-installer-import-file }}"
+        if (-not (Test-Path $importFilePath)) {
+            Write-Host "Import file does not exist at path: $importFilePath"
+            exit 1
+        }
+        Write-Host "Using import file at path: $importFilePath"
+
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+        $arguments = "--installAddOns" +
+        "--location `"${{ steps.add_ons_path.outputs.directory }}`"" +
+        "--channel `"Releases`"" +
+        "--file `"${importFilePath}`""
+
+        $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Verb runas -Wait -PassThru
+        if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+            exit 0
+        } elseif ($process.ExitCode -ne 0) {
+            throw "AddOn installation failed with exit code $($process.ExitCode)."
+        }
+        Write-Host "Finished installing addons from import file"
+        Write-Host "::endgroup::"
+
+    - if: ${{ inputs.installer-only != 'true' }}
+      name: Show installation information
+      id: install_info
+      shell: pwsh
+      run: | # powershell
+        Write-Host "::group::Show installation information"
+
+        Write-Host "This process will take a few seconds. Please be patient."
+
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+        $outputFile = Join-Path -Path $PWD -ChildPath "installation-info.json"
+         
+        $arguments = "--getInstallation " +
+        "--location `"${{ steps.add_ons_path.outputs.directory }}`" " +
+        "--outputfile `"${outputFile}`""
+        
+        $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Wait -NoNewWindow -PassThru
+        if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+            exit 0
+        } elseif ($process.ExitCode -ne 0) {
+            throw "Information extraction failed with exit code $($process.ExitCode)."
+        }
+
+        "installation-info-file-path=$outputFile" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        Write-Host "Output file path: $outputFile"
+        Get-Content -Path "$outputFile" -Encoding UTF8
+        
+        Write-Host "Finished installation information extraction"
+
+        Write-Host "::endgroup::"
+
+        Write-Host "::group::Show add-ons information"
+
+        Write-Host "This process will take a few seconds. Please be patient."
+
+        $exePath = "${{ steps.globals.outputs.INSTALLER_DIR }}\APInstaller.CLI.exe"
+        $outputFileAddOns = Join-Path -Path $PWD -ChildPath "add-ons-info.json"
+
+        $arguments = "--getAddOns " +
+        "--location `"${{ steps.add_ons_path.outputs.directory }}`" " +
+        "--outputfile `"${outputFileAddOns}`""
+
+        $process = Start-Process -FilePath $exePath -ArgumentList $arguments -Wait -NoNewWindow -PassThru
+        if ($process.ExitCode -eq 1 -or $process.ExitCode -eq -1) {
+            exit 0
+        } elseif ($process.ExitCode -ne 0) {
+            throw "Add-ons information extraction failed with exit code $($process.ExitCode)."
+        }
+        "add-ons-info-file-path=$outputFileAddOns" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        Write-Host "Output file path: $outputFileAddOns"
+        Get-Content -Path "$outputFileAddOns" -Encoding UTF8
+
+        Write-Host "Finished add-ons information extraction"
