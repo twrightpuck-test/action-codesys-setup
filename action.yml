@@ -76,7 +76,7 @@ inputs:
   install-add-ons:
     description: "If set to `true`, the installer will install the CODESYS AddOns."
     required: false
-    default: false
+    default: true
 
   add-ons-list:
     description: >
