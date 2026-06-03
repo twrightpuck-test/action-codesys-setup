@@ -16,7 +16,7 @@ jobs:
         id: setup_cached
         uses: ./
         with:
-          generation: 3.5.22.0
+          generation: 3.5.20.0
           architecture: 64
           patch: 1
           cache-codesys-installation: true
@@ -54,5 +54,5 @@ jobs:
         uses: ./.github/actions/verify-codesys
         with:
           codesys-executable: ${{ steps.setup_cached.outputs.codesys-executable }}
-          generation: 3.5.22.0
+          generation: 3.5.20.0
           patch: 1
