@@ -5,7 +5,7 @@ on:
 
 jobs:
   multiple-installations:
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows]
     permissions:
       contents: read
     steps:
