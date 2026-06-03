@@ -33,7 +33,7 @@ inputs:
       Even if you want to install the version `3.5.19.6` you have to define the generation as `3.5.19.0`.  
       The patch version is defined by the `patch` input.'
     required: false
-    default: 3.5.22.0
+    default: 3.5.20.1
 
   architecture:
     description: "The installation architecture of CODESYS. Allowed inputs: `32` and `64`."
