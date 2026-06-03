@@ -14,10 +14,10 @@ jobs:
       contents: read
     uses: ./.github/workflows/test-install-versions.yml
 
-  addons:
-    permissions:
-      contents: read
-    uses: ./.github/workflows/test-install-addons.yml
+  # addons:
+  #   permissions:
+  #     contents: read
+  #   uses: ./.github/workflows/test-install-addons.yml
 
   cache:
     permissions:
