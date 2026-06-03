@@ -31,7 +31,7 @@ jobs:
           - generation: 3.5.22.0
             patch: 0
 
-    runs-on: windows-latest
+    runs-on: [self-hosted, Windows]
     permissions:
       contents: read
     steps:
