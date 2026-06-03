@@ -15,12 +15,12 @@ inputs:
   cache-codesys-installation:
     description: "Enable caching of CODESYS installation. Installations are stored as sandboxes and restored on subsequent runs."
     required: false
-    default: false
+    default: true
 
   cache-codesys-installer:
     description: "Enable caching of the CODESYS installer. Skips download on subsequent runs."
     required: false
-    default: false
+    default: true
 
   installer-version:
     description: "The version of the installer to use to install the CODESYS installation."
