@@ -2,7 +2,8 @@ name: Test Installer Only
 
 on:
   workflow_call:
-
+  workflow_dispatch:
+  
 jobs:
   installer-only:
     runs-on: [self-hosted, Windows]
